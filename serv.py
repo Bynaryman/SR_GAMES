@@ -15,6 +15,9 @@ class MyService(rpyc.Service):
         self._players.remove(self._conn)
         print('player left:', self._conn)
 
+    def exposed_get_players(self):
+        return self._players
+
 
 if __name__ == "__main__":
 
