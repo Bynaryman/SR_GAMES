@@ -1,10 +1,9 @@
 from random import choices
-
 import rpyc
 from rpyc.utils.server import ThreadedServer  # or ForkingServer
 
 
-class MyService(rpyc.Service):
+class GameServer(rpyc.Service):
     """
 
     Attributes:
@@ -25,11 +24,22 @@ class MyService(rpyc.Service):
     _sweet_probability = 0.3
     _dim = (10, 10)
 
-    def __init__(self):
+    def __init__(self, dim):
         self._conn = None
-        print('here')
+        self._dim = dim
         super().__init__(self)
         self._init_world()
+
+    """
+        TODO
+    """
+    def __repr__(self):
+        print('players: ', self._players, '\n')
+        print('actual representation of world:\n')
+        tmp = ''
+        for i in self._world:
+            tmp += ','.join(str(x) for x in i) + '\n'
+        return tmp
 
     def on_connect(self):
         self._players.append(self._conn)
@@ -44,9 +54,8 @@ class MyService(rpyc.Service):
 
     def _init_world(self):
         x, y = self._dim
-        self._world = [[choices([0, 2], [1 - self._sweet_probability, self._sweet_probability]) for _ in range(x)]
+        self._world = [[choices([0, 2], [1 - self._sweet_probability, self._sweet_probability])[0] for _ in range(x)]
                        for _ in range(y)]
-        print(self._world)
 
 
 if __name__ == '__main__':
@@ -55,5 +64,8 @@ if __name__ == '__main__':
         depending on the OS. Forking only works with UNIX based OS
     """
 
-    server = ThreadedServer(MyService, port=12345)
+    world_dim = (10, 10)
+    game_server = GameServer(world_dim)
+    server = ThreadedServer(game_server, port=12345)
+    print(game_server)
     server.start()
