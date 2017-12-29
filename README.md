@@ -13,4 +13,4 @@ SR GAME
 
 -   Ledoux Louis (Bynaryman) (14000860)
 
--   Durand Julien (JDarket35) (14003228)
+-   Durand Julien (JDurand35) (14003228)
