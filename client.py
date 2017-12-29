@@ -23,7 +23,23 @@ class Display():
 					self._damier.create_rectangle(x * self._sizeOfCase, y * self._sizeOfCase, (x + 1) * self._sizeOfCase, (y + 1) * self._sizeOfCase, fill='red')
 				if (self._grid[x][y] == 2 ):
 					self._damier.create_rectangle(x * self._sizeOfCase, y * self._sizeOfCase, (x + 1) * self._sizeOfCase, (y + 1) * self._sizeOfCase, fill='green')
-							
+	
+	def rightKey(event):		
+		print("Right key pressed")
+	def leftKey(event):
+		print("Left key pressed")
+	def topKey(event):
+		print("Top key pressed")
+	def botKey(event):
+		print("Bot key pressed")    
+ 
+ 
+def bind():
+	damier.bind_all('<Right>', rightKey)
+	damier.bind_all('<Left>', leftKey)
+	damier.bind_all('<Up>', topKey)
+	damier.bind_all('<Down>', botKey)
+	damier.pack()
 				
 			
 		
