@@ -1,6 +1,7 @@
 from random import choices
 import rpyc
 from rpyc.utils.server import ThreadedServer  # or ForkingServer
+from time import time
 
 
 class GameServer(rpyc.Service):
@@ -34,9 +35,13 @@ class GameServer(rpyc.Service):
 
     def on_connect(self):
         self._players.append(self._conn)
-        print('new player:', self._conn)
+        print('new player:', self._conn)       
         for player in self._players:
-            player.root.exposed_notify_new_player(2)
+            player.root.notify_new_player(2)
+            
+    def exposed_start_game(self):
+        self._conn.root.draw([[choices([0, 2], [0.7, 0.3])[0] for _ in range(10)] for _ in range(10)])
+        print("test")
 
     def on_disconnect(self):
         self._players.remove(self._conn)
