@@ -24,7 +24,6 @@ class GameServer(rpyc.Service):
     """
         TODO
     """
-
     def __repr__(self):
         print('players: ', self._players, '\n')
         print('actual representation of world:\n')
@@ -36,6 +35,8 @@ class GameServer(rpyc.Service):
     def on_connect(self):
         self._players.append(self._conn)
         print('new player:', self._conn)
+        for player in self._players:
+            player.root.exposed_notify_new_player(2)
 
     def on_disconnect(self):
         self._players.remove(self._conn)
