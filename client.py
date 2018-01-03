@@ -35,7 +35,13 @@ class GameClient(rpyc.Service):
                     self._damier.create_rectangle(x * self._sizeOfCase, y * self._sizeOfCase,
                                                   (x + 1) * self._sizeOfCase, (y + 1) * self._sizeOfCase, fill='green')
         print(time.time() - t1)
-
+            
+    def __hash__(self):
+        return hash((self._conn, self._rows, self._columns, self._sizeOfCase, self._damier))
+        
+    def __eq__(self, other):
+        return (self._conn == other._conn) and (self._rows == other._conn) and (self._columns == other._columns) and (self._damier == other._damier) and (self._sizeOfCase == other._sizeOfCase)
+        
     def rightKey(self, event):
         print("Right key pressed")
         self._conn.root.start_game()
