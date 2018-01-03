@@ -1,6 +1,7 @@
 from random import choices, randint
 import rpyc
 from rpyc.utils.server import ThreadedServer  # or ForkingServer
+import namesgenerator
 from time import time
 
 
@@ -25,7 +26,7 @@ class GameServer(rpyc.Service):
     """
 
     _world = [[choices([0, 2], [0.7, 0.3])[0] for _ in range(10)] for _ in range(10)]
-    _players = []
+    _players = {}
 
     """
         TODO
@@ -41,12 +42,13 @@ class GameServer(rpyc.Service):
 
     def on_connect(self):
         x, y = self.find_correct_place_to_spawn()
-        self._world[y][x] = 1
+        self._world[x][y] = 1
         self._players.append({"player": self._conn, "coords": (x, y)})
         player_name = 'Player' + str(len(self._players) - 1)
         print('new player joined the game: ' + player_name)
         for player in [d['player'] for d in self._players]:
             player.root.notify_new_player(player_name)
+            player.root.draw(self._world)
 
     """
         called when a player is connected and want to spawn,
@@ -55,16 +57,22 @@ class GameServer(rpyc.Service):
 
     def exposed_start_game(self):
         self._conn.root.draw(self._world)
-        print("test")
 
     def on_disconnect(self):
         try:
-            index = self._players.index(self._conn)  # O(size - index)
+            print(len(self._players))
+            index = [d['player'] for d in self._players].index(self._conn)  # O(size - index) (for index only)
+            print(index)
+            x, y = self._players[index]['coords']
+            self._world[x][y] = 0
             del self._players[index]  # O(size - index)
+            print(len(self._players), x, y)
             player_name = 'Player' + str(index)
             print('player left:', player_name)
             for player in [d['player'] for d in self._players]:
+                print(player)
                 player.root.notify_player_left(player_name)
+                player.root.draw(self._world)
         except ValueError:
             print('no such player')
 

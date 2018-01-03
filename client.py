@@ -5,16 +5,12 @@ import time
 
 
 class GameClient(rpyc.Service):
-    _rows = 10
-    _columns = 10
-    _sizeOfCase = 30
-    _damier = tk.Canvas(width=_rows * _sizeOfCase, height=_columns * _sizeOfCase)
 
-    def init(self):
-        # self._rows = 10
-        # self._columns = 10
-        # self._sizeOfCase = 30
-        # self._damier = tk.Canvas(width=self._rows * self._sizeOfCase, height=self._columns * self._sizeOfCase)
+    def on_connect(self):
+        self._rows = 10
+        self._columns = 10
+        self._sizeOfCase = 30
+        self._damier = tk.Canvas(width=self._rows * self._sizeOfCase, height=self._columns * self._sizeOfCase)
         for k in range(0, self._rows):
             self._damier.create_line(self._sizeOfCase * k, 0, self._sizeOfCase * k, self._rows * self._sizeOfCase,
                                      width=1)
@@ -75,12 +71,6 @@ if __name__ == '__main__':
     # conn.root.exposed_start_game()
     # conn2 = rpyc.connect('127.0.0.1', 12345, service=GameClient)
     # print(conn.root.exposed_get_players())
-    time.sleep(0)
-    print("bonjour")
-    rows = columns = 10
-    sizeOfCase = 30
-    game = GameClient(conn)
-    game.init()
     tk.mainloop()
 
     # os.system('pause')
