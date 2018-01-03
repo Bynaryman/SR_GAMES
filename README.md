@@ -3,9 +3,15 @@ SR GAME
 
  
 
-### description
+### Description
 
- 
+ Jeu simple pour la matière Systèmes Répartis ESIR3
+
+### technos
+
+-   python 3.6
+
+-   RPyC
 
 ### Authors
 
