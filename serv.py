@@ -21,13 +21,13 @@ class GameServer(rpyc.Service):
         _players   A one dimension array of dictionaries
 
                 Example of the array at one moment :
-                [{player: conn1, coords:(1, 2)},
-                 {player: conn2, coords:(3, 2)}]
+                [ ... ]
 
     """
 
     _world = [[choices([0, 2], [0.7, 0.3])[0] for _ in range(10)] for _ in range(10)]
-    _players = {}
+    _players = []
+    _names_pick = []
 
     """
         TODO
@@ -44,38 +44,35 @@ class GameServer(rpyc.Service):
     def on_connect(self):
         x, y = self.find_correct_place_to_spawn()
         self._world[x][y] = 1
-        player_name = "P1"
-        player = Player(x, y, player_name)
-        print(self._conn.root.name)
-        self._players[self._conn] = player
+        player_name = namesgenerator.get_random_name()
+        while player_name in self._names_pick:
+            player_name = namesgenerator.get_random_name()
+        player = Player(x, y, player_name, self._conn)
+        self._players.append(player)
         print('new player joined the game: ' + player_name)
-        for player in self._players.keys():
-            player.notify_new_player(player_name)
-            player.draw(self._world)
+        for player in self._players:
+            player.getConn().root.notify_new_player(player_name)
+            player.getConn().root.draw(self._world)
 
     """
         called when a player is connected and want to spawn,
         so the server finds him a correct place and say him to redraw
     """
-
     def exposed_start_game(self):
         self._conn.root.draw(self._world)
 
     def on_disconnect(self):
-        try:
-            player = self._players[self._conn.root]
-            player_name = player.getName()
-            x, y = player.getPos()
-            self._world[x][y] = 0
-            del self._players[self._conn]
-            print(player_name, x, y)
-            print('player left:', player_name)
-            for player in self._players.keys():
-                print(player)
-                player.notify_player_left(player_name)
-                player.draw(self._world)
-        except ValueError:
-            print('no such player')
+        for i, player in enumerate(self._players):
+            if player.getConn() == self._conn:
+                player_name = player.getName()
+                x, y = player.getPos()
+                print('player left:', player_name)
+                self._world[x][y] = 0
+                del self._players[i]
+                for playerToNotify in self._players:
+                    playerToNotify.getConn().root.notify_player_left(player_name)
+                    playerToNotify.getConn().root.draw(self._world)
+
 
     def exposed_get_players(self):
         return self._players
