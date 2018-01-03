@@ -45,8 +45,9 @@ class GameServer(rpyc.Service):
         x, y = self.find_correct_place_to_spawn()
         self._world[x][y] = 1
         player_name = "P1"
-        player = Player(x,y,player_name)
-        self._players[self._conn.root, player]
+        player = Player(x, y, player_name)
+        print(self._conn.root.name)
+        self._players[self._conn] = player
         print('new player joined the game: ' + player_name)
         for player in self._players.keys():
             player.notify_new_player(player_name)
