@@ -3,8 +3,8 @@ import os
 import tkinter as tk
 import time
 
-class GameClient(rpyc.Service):
 
+class GameClient(rpyc.Service):
     _rows = 10
     _columns = 10
     _sizeOfCase = 30
@@ -41,7 +41,7 @@ class GameClient(rpyc.Service):
         print(time.time() - t1)
 
     def rightKey(self, event):
-        print("Left key pressed")
+        print("Right key pressed")
         self._conn.root.start_game()
 
     def leftKey(self, event):
@@ -53,7 +53,6 @@ class GameClient(rpyc.Service):
     def botKey(self, event):
         print("Bot key pressed")
 
-
     def bind(self):
         self._damier.bind_all('<Right>', self.rightKey)
         self._damier.bind_all('<Left>', self.leftKey)
@@ -63,16 +62,19 @@ class GameClient(rpyc.Service):
 
     def exposed_draw(self, grid):
         print("test")
-        self.draw(grid) 
-        
-    def exposed_notify_new_player(self, number):
-        print('new player', number)
+        self.draw(grid)
+
+    def exposed_notify_new_player(self, player_name):
+        print('new player joined the game', player_name)
+
+    def exposed_notify_player_left(self, player_name):
+        print('a player left the game', player_name)
 
 if __name__ == '__main__':
     conn = rpyc.connect('127.0.0.1', 12345, service=GameClient)
     # conn.root.exposed_start_game()
     # conn2 = rpyc.connect('127.0.0.1', 12345, service=GameClient)
-    print(conn.root.exposed_get_players())
+    # print(conn.root.exposed_get_players())
     time.sleep(0)
     print("bonjour")
     rows = columns = 10
@@ -80,7 +82,7 @@ if __name__ == '__main__':
     game = GameClient(conn)
     game.init()
     tk.mainloop()
-    
+
     # os.system('pause')
     # rows = columns = 10
     # sizeOfCase = 30

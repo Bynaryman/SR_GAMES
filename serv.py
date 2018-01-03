@@ -35,17 +35,25 @@ class GameServer(rpyc.Service):
 
     def on_connect(self):
         self._players.append(self._conn)
-        print('new player:', self._conn)       
+        player_name = 'Player' + str(len(self._players) - 1)
+        print('new player joined the game: ' + player_name)
         for player in self._players:
-            player.root.notify_new_player(2)
+            player.root.notify_new_player(player_name)
             
     def exposed_start_game(self):
         self._conn.root.draw([[choices([0, 2], [0.7, 0.3])[0] for _ in range(10)] for _ in range(10)])
         print("test")
 
     def on_disconnect(self):
-        self._players.remove(self._conn)
-        print('player left:', self._conn)
+        try:
+            index = self._players.index(self._conn)  # O(size - index)
+            del self._players[index]  # O(size - index)
+            player_name = 'Player' + str(index)
+            print('player left:', player_name)
+            for player in self._players:
+                player.root.notify_player_left(player_name)
+        except ValueError:
+            print('no such player')
 
     def exposed_get_players(self):
         return self._players
