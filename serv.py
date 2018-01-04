@@ -31,6 +31,7 @@ class GameServer(rpyc.Service):
     _names_pick = []
     """
 
+    """
     def __init__(self, conn):
         super().__init__(conn)
         dim = 10
@@ -38,6 +39,14 @@ class GameServer(rpyc.Service):
         self.names_pick = []
         self.players = []
         self.world = world
+    """
+
+
+    dim = 10
+    world = World(dimensions=(dim, dim))
+    names_pick = []
+    players = []
+    world = world
 
     def on_connect(self):
         print('someone connected')
@@ -119,6 +128,5 @@ if __name__ == '__main__':
         depending on the OS. Forking only works with UNIX based OS
     """
 
-    gs = GameServer(None)
-    server = ThreadedServer(gs.__class__, port=12345)
+    server = ThreadedServer(GameServer, port=12345)
     server.start()
