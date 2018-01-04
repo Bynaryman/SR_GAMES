@@ -40,15 +40,18 @@ class GameServer(rpyc.Service):
         self.world = world
 
     def on_connect(self):
+        print('someone connected')
+
+    def exposed_start_game(self, name):
         x, y = self.world.get_available_spawnable_pos()
-        player_name = namesgenerator.get_random_name()
-        while player_name in self.names_pick:
-            player_name = namesgenerator.get_random_name()
-        player = Player(x, y, player_name, self._conn, self.world)
+        if name in self.names_pick:
+            name += ' :)'
+        player = Player(x, y, name, self._conn, self.world)
         self.players.append(player)
-        print('new player joined the game: ' + player_name)
+        print('new player joined the game: ' + name)
         for player in self.players:
-            player.get_conn().root.notify_new_player(player_name)
+            player.get_conn().root.notify_new_player(name)
+        return x, y, name, self.world.get_world()
 
     def on_disconnect(self):
         for i, player in enumerate(self.players):

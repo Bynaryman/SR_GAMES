@@ -31,6 +31,9 @@ class World:
                 if box == 2:  # 2 = sweet
                     window_ref.blit(sweet, (x, y))
 
+    def set_world(self, w):
+        self.world = w
+
     def get_world(self):
         return self.world
 

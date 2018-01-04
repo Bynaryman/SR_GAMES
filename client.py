@@ -1,12 +1,22 @@
 from random import choices
 
+import namesgenerator
 import rpyc
-
 from player import Player
 from common import *
 import pygame
 from pygame.locals import *
 from world import World
+import argparse
+
+
+class ArgumentParserError(Exception):
+    pass
+
+
+class ThrowingArgumentParser(argparse.ArgumentParser):
+    def error(self, message):
+        raise ArgumentParserError(message)
 
 
 class GameClient(rpyc.Service):
@@ -23,18 +33,33 @@ class GameClient(rpyc.Service):
 
 if __name__ == '__main__':
 
-    conn = rpyc.connect('127.0.0.1', 12345, service=GameClient)
+    parser = ThrowingArgumentParser(description='the SR game client')
+    parser.add_argument('-n', '--name', dest='name', metavar='[name]', required=False)
 
-    dim = 10
+    player_name = ''
+    try:
+        args = parser.parse_args()
+        if args.name is None:
+            player_name = namesgenerator.get_random_name()
+        else:
+            player_name = args.name
+    except ArgumentParserError:
+        parser.print_usage()
+
+    conn = rpyc.connect('127.0.0.1', 12345, service=GameClient)
+    x, y, player_name, world_grid = conn.root.start_game(player_name)
+
+    dim = len(world_grid)
     win_dim_x = win_dim_y = pict_size * dim
 
     pygame.init()
     window = pygame.display.set_mode((win_dim_x, win_dim_y))
-    pygame.display.set_caption('THE ST GAME')
+    pygame.display.set_caption('THE SR GAME')
 
     world = World(dimensions=(dim, dim))
-    pos_x, pos_y = world.get_available_spawnable_pos()
-    player = Player(pos_x, pos_y, 'blitzcrank', None, world)
+    world.set_world(world_grid)
+    pos_x, pos_y = x, y
+    player = Player(pos_x, pos_y, player_name, conn, world)
 
     done = False
 
