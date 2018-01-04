@@ -51,8 +51,8 @@ class GameServer(rpyc.Service):
         self._players.append(player)
         print('new player joined the game: ' + player_name)
         for player in self._players:
-            player.getConn().root.notify_new_player(player_name)
-            player.getConn().root.draw(self._world)
+            player.get_conn().root.notify_new_player(player_name)
+            player.get_conn().root.draw(self._world)
 
     """
         called when a player is connected and want to spawn,
@@ -63,26 +63,25 @@ class GameServer(rpyc.Service):
 
     def on_disconnect(self):
         for i, player in enumerate(self._players):
-            if player.getConn() == self._conn:
-                player_name = player.getName()
-                x, y = player.getPos()
+            if player.get_conn() == self._conn:
+                player_name = player.get_name()
+                x, y = player.get_pos()
                 print('player left:', player_name)
                 self._world[x][y] = 0
                 del self._players[i]
                 for playerToNotify in self._players:
-                    playerToNotify.getConn().root.notify_player_left(player_name)
-                    playerToNotify.getConn().root.draw(self._world)
-
+                    playerToNotify.get_conn().root.notify_player_left(player_name)
+                    playerToNotify.get_conn().root.draw(self._world)
 
     def exposed_get_players(self):
         return self._players
 
     def find_correct_place_to_spawn(self):
-        dimX, dimY = len(self._world[0]), len(self._world)
-        randX, randY = randint(0, dimX - 1), randint(0, dimY - 1)
-        while self._world[randY][randX] != 0:
-            randX, randY = randint(0, dimX - 1), randint(0, dimY - 1)
-        return randX, randY
+        dim_x, dim_y = len(self._world[0]), len(self._world)
+        rand_x, rand_y = randint(0, dim_x - 1), randint(0, dim_y - 1)
+        while self._world[rand_x][rand_y] != 0:
+            rand_x, rand_y = randint(0, dim_x - 1), randint(0, dim_y - 1)
+        return rand_x, rand_y
 
 
 if __name__ == '__main__':
