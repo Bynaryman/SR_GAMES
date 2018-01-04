@@ -1,5 +1,6 @@
 from common import *
-
+import pygame
+from pygame.locals import *
 
 class Player:
     """
@@ -17,7 +18,7 @@ class Player:
         self.world = world_ref
 
     def get_pos(self):
-        return self.x, self.y
+        return self.case_x, self.case_y
 
     def set_pos(self, x, y):
         self.x = x
@@ -36,7 +37,8 @@ class Player:
         return self.conn
 
     def __repr__(self):
-        print("Player : " + self.name + ", Coords : (" + self.x + "," + self.y + "), Score : " + self.score)
+        return "Player : " + self.name + ", Coords : (" + str(self.case_x) + "," + str(self.case_y) + "), Score : " \
+               + str(self.score)
 
     def move(self, direction):
         """
@@ -86,7 +88,7 @@ if __name__ == '__main__':
         We always redraw all (world + player) @ 10FPS (theoric)
     """
 
-    import pygame
+
     from world import World
     from pygame.locals import *
     from random import choices

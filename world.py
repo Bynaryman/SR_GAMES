@@ -61,7 +61,6 @@ if __name__ == '__main__':
     window = pygame.display.set_mode((win_dim_x, win_dim_y))
     pygame.display.set_caption('test World class')
 
-    background = pict_background
     world = World(dimensions=(dim, dim))
 
     done = False

@@ -5,4 +5,3 @@ pict_size = 32
 pict_sweet = 'pictures/sweet.png'
 pict_grass = 'pictures/grass.png'
 pict_player = 'pictures/player.png'
-pict_background = 'pictures/'

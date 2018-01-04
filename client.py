@@ -1,70 +1,18 @@
+from random import choices
+
 import rpyc
-import os
-import tkinter as tk
-import time
+
+from player import Player
+from common import *
+import pygame
+from pygame.locals import *
+from world import World
 
 
 class GameClient(rpyc.Service):
 
     def on_connect(self):
-        self._rows = 10
-        self._columns = 10
-        self._sizeOfCase = 30
-        self._damier = tk.Canvas(width=self._rows * self._sizeOfCase, height=self._columns * self._sizeOfCase)
-        for k in range(0, self._rows):
-            self._damier.create_line(self._sizeOfCase * k, 0, self._sizeOfCase * k, self._rows * self._sizeOfCase,
-                                     width=1)
-            self._damier.create_line(0, self._sizeOfCase * k, self._columns * self._sizeOfCase, self._sizeOfCase * k,
-                                     width=1)
-        self.bind()
-        self._damier.pack()
-        self._conn.root.start_game()
-
-    def draw(self, grid):
-        t1 = time.time()
-        self._grid = grid
-        for x in range(0, len(self._grid)):
-            for y in range(0, len(self._grid[x])):
-                if (self._grid[x][y] == 0):
-                    self._damier.create_rectangle(x * self._sizeOfCase, y * self._sizeOfCase,
-                                                  (x + 1) * self._sizeOfCase, (y + 1) * self._sizeOfCase, fill='white')
-                if (self._grid[x][y] == 1):
-                    self._damier.create_rectangle(x * self._sizeOfCase, y * self._sizeOfCase,
-                                                  (x + 1) * self._sizeOfCase, (y + 1) * self._sizeOfCase, fill='red')
-                if (self._grid[x][y] == 2):
-                    self._damier.create_rectangle(x * self._sizeOfCase, y * self._sizeOfCase,
-                                                  (x + 1) * self._sizeOfCase, (y + 1) * self._sizeOfCase, fill='green')
-        print(time.time() - t1)
-            
-    def __hash__(self):
-        return hash((self._conn, self._rows, self._columns, self._sizeOfCase, self._damier))
-        
-    def __eq__(self, other):
-        return (self._conn == other._conn) and (self._rows == other._conn) and (self._columns == other._columns) and (self._damier == other._damier) and (self._sizeOfCase == other._sizeOfCase)
-        
-    def rightKey(self, event):
-        print("Right key pressed")
-        self._conn.root.start_game()
-
-    def leftKey(self, event):
-        print("Left key pressed")
-
-    def topKey(self, event):
-        print("Top key pressed")
-
-    def botKey(self, event):
-        print("Bot key pressed")
-
-    def bind(self):
-        self._damier.bind_all('<Right>', self.rightKey)
-        self._damier.bind_all('<Left>', self.leftKey)
-        self._damier.bind_all('<Up>', self.topKey)
-        self._damier.bind_all('<Down>', self.botKey)
-        self._damier.pack()
-
-    def exposed_draw(self, grid):
-        print("test")
-        self.draw(grid)
+        print('connecting...')
 
     def exposed_notify_new_player(self, player_name):
         print('new player joined the game', player_name)
@@ -72,18 +20,55 @@ class GameClient(rpyc.Service):
     def exposed_notify_player_left(self, player_name):
         print('a player left the game', player_name)
 
-if __name__ == '__main__':
-    conn = rpyc.connect('127.0.0.1', 12345, service=GameClient)
-    # conn.root.exposed_start_game()
-    # conn2 = rpyc.connect('127.0.0.1', 12345, service=GameClient)
-    # print(conn.root.exposed_get_players())
-    tk.mainloop()
 
-    # os.system('pause')
-    # rows = columns = 10
-    # sizeOfCase = 30
-    # tab1 = [0, 1, 0, 0, 1, 2, 0, 2, 0, 0]
-    # tab2 = [0, 0, 0, 2, 0, 1, 2, 0, 0, 1]
-    # tab = [tab1, tab2, tab1, tab2, tab1, tab2, tab1, tab2, tab1, tab2]
-    # disp = Display(rows, columns, sizeOfCase)
-    # disp.draw(tab)
+if __name__ == '__main__':
+
+    conn = rpyc.connect('127.0.0.1', 12345, service=GameClient)
+
+    dim = 10
+    win_dim_x = win_dim_y = pict_size * dim
+
+    pygame.init()
+    window = pygame.display.set_mode((win_dim_x, win_dim_y))
+    pygame.display.set_caption('THE ST GAME')
+
+    world = World(dimensions=(dim, dim))
+    pos_x, pos_y = world.get_available_spawnable_pos()
+    player = Player(pos_x, pos_y, 'blitzcrank', None, world)
+
+    done = False
+
+    while not done:
+
+        pygame.time.Clock().tick(10)
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                done = True
+            elif event.type == KEYDOWN:
+                # TODO aller dans menu si echap ?
+                # if event.key == K_ESCAPE:
+                if event.key == K_RIGHT:
+                    choice = 'right'
+                    if conn.root.move(choice):
+                        player.move(choice)
+                elif event.key == K_LEFT:
+                    choice = 'left'
+                    if conn.root.move(choice):
+                        player.move(choice)
+                elif event.key == K_UP:
+                    choice = 'top'
+                    if conn.root.move(choice):
+                        player.move(choice)
+                elif event.key == K_DOWN:
+                    choice = 'bot'
+                    if conn.root.move(choice):
+                        player.move(choice)
+
+        # we randomly move the player at each tick
+        # choice = choices(['bot', 'top', 'right', 'left'], [1, 1, 1, 1])[0]
+
+
+        world.display(window)
+        player.display(window)
+        pygame.display.flip()
+

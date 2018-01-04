@@ -2,9 +2,9 @@ from random import choices, randint
 import rpyc
 from rpyc.utils.server import ThreadedServer  # or ForkingServer
 import namesgenerator
-from time import time
-from Player import Player
-
+from player import Player
+from world import World
+from common import *
 
 class GameServer(rpyc.Service):
     """
@@ -25,56 +25,82 @@ class GameServer(rpyc.Service):
 
     """
 
+    """
     _world = [[choices([0, 2], [0.7, 0.3])[0] for _ in range(10)] for _ in range(10)]
     _players = []
     _names_pick = []
-
-    """
-        TODO
     """
 
-    def __repr__(self):
-        print('players: ', self._players, '\n')
-        print('actual representation of world:\n')
-        tmp = ''
-        for i in self._world:
-            tmp += ','.join(str(x) for x in i) + '\n'
-        return tmp
+    def __init__(self, conn):
+        super().__init__(conn)
+        dim = 10
+        world = World(dimensions=(dim, dim))
+        self.names_pick = []
+        self.players = []
+        self.world = world
 
     def on_connect(self):
-        x, y = self.find_correct_place_to_spawn()
-        self._world[x][y] = 1
+        x, y = self.world.get_available_spawnable_pos()
         player_name = namesgenerator.get_random_name()
-        while player_name in self._names_pick:
+        while player_name in self.names_pick:
             player_name = namesgenerator.get_random_name()
-        player = Player(x, y, player_name, self._conn)
-        self._players.append(player)
+        player = Player(x, y, player_name, self._conn, self.world)
+        self.players.append(player)
         print('new player joined the game: ' + player_name)
-        for player in self._players:
+        for player in self.players:
             player.get_conn().root.notify_new_player(player_name)
-            player.get_conn().root.draw(self._world)
-
-    """
-        called when a player is connected and want to spawn,
-        so the server finds him a correct place and say him to redraw
-    """
-    def exposed_start_game(self):
-        self._conn.root.draw(self._world)
 
     def on_disconnect(self):
-        for i, player in enumerate(self._players):
+        for i, player in enumerate(self.players):
             if player.get_conn() == self._conn:
                 player_name = player.get_name()
                 x, y = player.get_pos()
-                print('player left:', player_name)
-                self._world[x][y] = 0
-                del self._players[i]
-                for playerToNotify in self._players:
+                print('player left:', player_name, x, y)
+                self.world.get_world()[x][y] = 0
+                print(self.players)
+                del self.players[i]
+                print(self.players)
+                for playerToNotify in self.players:
+                    print('here')
                     playerToNotify.get_conn().root.notify_player_left(player_name)
-                    playerToNotify.get_conn().root.draw(self._world)
 
     def exposed_get_players(self):
         return self._players
+
+    def exposed_move(self, direction):
+        is_allowed = False
+        for i, player in enumerate(self.players):
+            if player.get_conn() == self._conn:
+                dim_x, dim_y = self.world.get_dimensions()
+
+                player_name = player.get_name()
+                print(player_name, 'wants to move to the', direction)
+                # TODO : gerer bombons et score ici
+                if direction == 'right':
+                    if player.case_x < (dim_x - 1):
+                        if self.world.get_world()[player.case_y][player.case_x + 1] != 1:
+                            player.case_x += 1
+                            player.x = player.case_x * pict_size # useless pour le server de savoir où il est en pixel ...
+                            is_allowed = True
+                if direction == 'left':
+                    if player.case_x > 0:
+                        if self.world.get_world()[player.case_y][player.case_x - 1] != 1:
+                            player.case_x -= 1
+                            player.x = player.case_x * pict_size
+                            is_allowed = True
+                if direction == 'top':
+                    if player.case_y > 0:
+                        if self.world.get_world()[player.case_y - 1][player.case_x] != 1:
+                            player.case_y -= 1
+                            player.y = player.case_y * pict_size
+                            is_allowed = True
+                if direction == 'bot':
+                    if player.case_y < (dim_y - 1):
+                        if self.world.get_world()[player.case_y + 1][player.case_x] != 1:
+                            player.case_y += 1
+                            player.y = player.case_y * pict_size
+                            is_allowed = True
+                return is_allowed
 
     def find_correct_place_to_spawn(self):
         dim_x, dim_y = len(self._world[0]), len(self._world)
@@ -90,5 +116,6 @@ if __name__ == '__main__':
         depending on the OS. Forking only works with UNIX based OS
     """
 
-    server = ThreadedServer(GameServer, port=12345)
+    gs = GameServer(None)
+    server = ThreadedServer(gs.__class__, port=12345)
     server.start()
