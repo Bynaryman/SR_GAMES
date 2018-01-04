@@ -8,6 +8,7 @@ import pygame
 from pygame.locals import *
 from world import World
 import argparse
+import time
 
 
 class ArgumentParserError(Exception):
@@ -61,10 +62,11 @@ if __name__ == '__main__':
     pos_x, pos_y = x, y
     player = Player(pos_x, pos_y, player_name, conn, world)
 
+    print("Space to start the game")
     done = False
-
+    game_started = False
     while not done:
-
+        time.sleep(3) # Permet de tester la concurrence et ca marche
         pygame.time.Clock().tick(10)
         world.set_world(conn.root.get_world())
         for event in pygame.event.get():
@@ -73,27 +75,31 @@ if __name__ == '__main__':
             elif event.type == KEYDOWN:
                 # TODO aller dans menu si echap ?
                 # if event.key == K_ESCAPE:
-                if event.key == K_RIGHT:
-                    choice = 'right'
-                    if conn.root.move(choice):
-                        player.move(choice)
-                elif event.key == K_LEFT:
-                    choice = 'left'
-                    if conn.root.move(choice):
-                        player.move(choice)
-                elif event.key == K_UP:
-                    choice = 'top'
-                    if conn.root.move(choice):
-                        player.move(choice)
-                elif event.key == K_DOWN:
-                    choice = 'bot'
-                    if conn.root.move(choice):
-                        player.move(choice)
+                if event.key == K_SPACE:
+                    conn.root.start()
+                    game_started = True
+                if game_started:
+                    if event.key == K_RIGHT:
+                        choice = 'right'
+                        if conn.root.move(choice):
+                            player.move(choice)
+                    elif event.key == K_LEFT:
+                        choice = 'left'
+                        if conn.root.move(choice):
+                            player.move(choice)
+                    elif event.key == K_UP:
+                        choice = 'top'
+                        if conn.root.move(choice):
+                            player.move(choice)
+                    elif event.key == K_DOWN:
+                        choice = 'bot'
+                        if conn.root.move(choice):
+                            player.move(choice)
 
         # we randomly move the player at each tick
         # choice = choices(['bot', 'top', 'right', 'left'], [1, 1, 1, 1])[0]
 
         world.display(window)
-        player.display(window)
+        #player.display(window)
         pygame.display.flip()
 

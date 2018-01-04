@@ -40,7 +40,10 @@ class Player:
         return "Player : " + self.name + ", Coords : (" + str(self.case_x) + "," + str(self.case_y) + "), Score : " \
                + str(self.score)
 
+
     def move(self, direction):
+        print("ok")
+        '''
         """
 
         :param direction:
@@ -72,6 +75,7 @@ class Player:
                 # if self.world.get_world()[self.case_y + 1][self.case_x] != 2:
                 self.case_y += 1
                 self.y = self.case_y * pict_size
+    '''
 
     def display(self, window_ref):
         p = pygame.image.load(pict_player).convert_alpha()

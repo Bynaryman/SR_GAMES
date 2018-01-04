@@ -34,6 +34,7 @@ class World:
                 if box == 2:  # 2 = sweet
                     window_ref.blit(sweet, (x, y))
 
+
     def set_world(self, w):
         self.world = w
 
@@ -49,6 +50,9 @@ class World:
         while self.world[rand_x][rand_y] != 0:
             rand_y, rand_y = randint(0, dim_x - 1), randint(0, dim_y - 1)
         return rand_x, rand_y
+
+    def set_pos(self, x, y, nb):
+        self.world[x][y] = nb
 
 
 if __name__ == '__main__':

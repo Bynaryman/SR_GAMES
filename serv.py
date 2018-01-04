@@ -50,17 +50,13 @@ class GameServer(rpyc.Service):
 
     def on_connect(self):
         print('someone connected')
-
-    def exposed_start_game(self, name):
-        x, y = self.world.get_available_spawnable_pos()
-        if name in self.names_pick:
-            name += ' :)'
-        player = Player(x, y, name, self._conn, self.world)
-        self.players.append(player)
-        print('new player joined the game: ' + name)
-        for player in self.players:
-            player.get_conn().root.notify_new_player(name)
-        return x, y, name, self.world.get_world()
+        for i, player in enumerate(self.players):
+            if player.get_conn() == self._conn:
+                actual_player = player
+                x,y = actual_player.getPos()
+                self.world.set_pos(x, y)
+                for i, player in enumerate(self.players):
+                    player.world.set_world(self.world)
 
     def on_disconnect(self):
         for i, player in enumerate(self.players):
@@ -77,53 +73,87 @@ class GameServer(rpyc.Service):
                     playerToNotify.get_conn().root.notify_player_left(player_name)
 
     def exposed_get_players(self):
-        return self._players
+        return self.players
 
     def exposed_get_world(self):
         return self.world.get_world()
+
+    def exposed_start(self):
+        for i, player in enumerate(self.players):
+            if player.get_conn() == self._conn:
+                self.world.set_pos(player.case_x, player.case_y, 1)
 
     def exposed_move(self, direction):
         is_allowed = False
         for i, player in enumerate(self.players):
             if player.get_conn() == self._conn:
                 dim_x, dim_y = self.world.get_dimensions()
-
                 player_name = player.get_name()
                 print(player_name, 'wants to move to the', direction)
                 # TODO : gerer bombons et score ici
                 # TODO 2 : quand quelqun bouge il faut reset le world du server
-                if direction == 'right':
-                    if player.case_x < (dim_x - 1):
-                        if self.world.get_world()[player.case_y][player.case_x + 1] != 1:
-                            player.case_x += 1
-                            player.x = player.case_x * pict_size # useless pour le server de savoir où il est en pixel ...
-                            is_allowed = True
-                if direction == 'left':
-                    if player.case_x > 0:
-                        if self.world.get_world()[player.case_y][player.case_x - 1] != 1:
-                            player.case_x -= 1
-                            player.x = player.case_x * pict_size
-                            is_allowed = True
-                if direction == 'top':
-                    if player.case_y > 0:
-                        if self.world.get_world()[player.case_y - 1][player.case_x] != 1:
-                            player.case_y -= 1
-                            player.y = player.case_y * pict_size
-                            is_allowed = True
-                if direction == 'bot':
-                    if player.case_y < (dim_y - 1):
-                        if self.world.get_world()[player.case_y + 1][player.case_x] != 1:
-                            player.case_y += 1
-                            player.y = player.case_y * pict_size
-                            is_allowed = True
+                if direction == 'right' and player.case_x < (dim_x - 1) and self.world.get_world()[player.case_x + 1][player.case_y] != 1:
+                    print("ok")
+                    if self.world.get_world()[player.case_x + 1][player.case_y] == 2:
+                        print(player.get_name() + "+1")
+                        player.set_score(player.get_score() + 1)
+                    self.world.set_pos(player.case_x + 1, player.case_y, 1)
+                    self.world.set_pos(player.case_x, player.case_y, 0)
+                    player.case_x += 1
+                    #player.x = player.case_x * pict_size # useless pour le server de savoir où il est en pixel ...
+                    #is_allowed = True
+                if direction == 'left' and player.case_x > 0 and self.world.get_world()[player.case_x - 1][player.case_y] != 1:
+                    print("ok")
+                    if self.world.get_world()[player.case_x - 1][player.case_y] == 2:
+                        print(player.get_name() + "+1")
+                        player.set_score(player.get_score() + 1)
+                    self.world.set_pos(player.case_x - 1, player.case_y, 1)
+                    self.world.set_pos(player.case_x, player.case_y, 0)
+                    player.case_x -= 1
+                    #player.x = player.case_x * pict_size
+                    #is_allowed = True
+                if direction == 'top' and player.case_y > 0 and self.world.get_world()[player.case_x][player.case_y - 1] != 1:
+                    print("ok")
+                    if self.world.get_world()[player.case_x][player.case_y - 1] == 2:
+                        print(player.get_name() + "+1")
+                        player.set_score(player.get_score() + 1)
+                    self.world.set_pos(player.case_x, player.case_y - 1, 1)
+                    self.world.set_pos(player.case_x, player.case_y, 0)
+                    player.case_y -= 1
+                    #player.y = player.case_y * pict_size
+                    #is_allowed = True
+                if direction == 'bot' and player.case_y < (dim_y - 1) and self.world.get_world()[player.case_x][player.case_y + 1] != 1:
+                    print("ok")
+                    if self.world.get_world()[player.case_x][player.case_y + 1] == 2:
+                        print(player.get_name() + "+1")
+                        player.set_score(player.get_score() + 1)
+                    self.world.set_pos(player.case_x, player.case_y + 1, 1)
+                    self.world.set_pos(player.case_x, player.case_y, 0)
+                    player.case_y += 1
+                    #player.y = player.case_y * pict_size
+                    #is_allowed = True
                 return is_allowed
 
+    '''
     def find_correct_place_to_spawn(self):
         dim_x, dim_y = len(self._world[0]), len(self._world)
         rand_x, rand_y = randint(0, dim_x - 1), randint(0, dim_y - 1)
         while self._world[rand_x][rand_y] != 0:
             rand_x, rand_y = randint(0, dim_x - 1), randint(0, dim_y - 1)
         return rand_x, rand_y
+        '''
+
+    def exposed_start_game(self, name):
+        x, y = self.world.get_available_spawnable_pos()
+        if name in self.names_pick:
+            name += ' :)'
+        player = Player(x, y, name, self._conn, self.world)
+        self.players.append(player)
+        print('new player joined the game: ' + name)
+        for player in self.players:
+            player.get_conn().root.notify_new_player(name)
+        return x, y, name, self.world.get_world()
+
 
 
 if __name__ == '__main__':
