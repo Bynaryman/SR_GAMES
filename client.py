@@ -66,6 +66,7 @@ if __name__ == '__main__':
     while not done:
 
         pygame.time.Clock().tick(10)
+        world.set_world(conn.root.get_world())
         for event in pygame.event.get():
             if event.type == QUIT:
                 done = True
@@ -91,7 +92,6 @@ if __name__ == '__main__':
 
         # we randomly move the player at each tick
         # choice = choices(['bot', 'top', 'right', 'left'], [1, 1, 1, 1])[0]
-
 
         world.display(window)
         player.display(window)

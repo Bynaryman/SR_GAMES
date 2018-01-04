@@ -79,6 +79,9 @@ class GameServer(rpyc.Service):
     def exposed_get_players(self):
         return self._players
 
+    def exposed_get_world(self):
+        return self.world.get_world()
+
     def exposed_move(self, direction):
         is_allowed = False
         for i, player in enumerate(self.players):
@@ -88,6 +91,7 @@ class GameServer(rpyc.Service):
                 player_name = player.get_name()
                 print(player_name, 'wants to move to the', direction)
                 # TODO : gerer bombons et score ici
+                # TODO 2 : quand quelqun bouge il faut reset le world du server
                 if direction == 'right':
                     if player.case_x < (dim_x - 1):
                         if self.world.get_world()[player.case_y][player.case_x + 1] != 1:

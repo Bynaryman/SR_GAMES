@@ -22,12 +22,15 @@ class World:
 
         grass = pygame.image.load(pict_grass).convert()
         sweet = pygame.image.load(pict_sweet).convert_alpha()
+        player = pygame.image.load(pict_player).convert_alpha()
 
         for i, row in enumerate(self.world):
             for j, box in enumerate(row):
                 x = i * pict_size
                 y = j * pict_size
                 window_ref.blit(grass, (x, y))
+                if box == 1:  # 2 = an other user
+                    window_ref.blit(player, (x, y))
                 if box == 2:  # 2 = sweet
                     window_ref.blit(sweet, (x, y))
 
