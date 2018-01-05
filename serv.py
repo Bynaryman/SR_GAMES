@@ -52,9 +52,8 @@ class GameServer(rpyc.Service):
         print('someone connected')
         for i, player in enumerate(self.players):
             if player.get_conn() == self._conn:
-                actual_player = player
-                x,y = actual_player.getPos()
-                self.world.set_pos(x, y)
+                x,y = player.get_pos()
+                self.world.set_pos(x, y, 1)
                 for i, player in enumerate(self.players):
                     player.world.set_world(self.world)
 
@@ -71,6 +70,28 @@ class GameServer(rpyc.Service):
                 for playerToNotify in self.players:
                     print('here')
                     playerToNotify.get_conn().root.notify_player_left(player_name)
+
+    def exposed_get_best_player(self):
+        score_tab = {}
+        for player in self.players:
+            score_tab[player.get_name()] = player.get_score()
+        for (player, score) in score_tab.items():
+            if score == max(score_tab.values()):
+                return player, score
+
+    def exposed_init_world(self):
+        self.world = World(dimensions=(self.dim, self.dim))
+        for player in self.players:
+            player.set_score(0)
+
+    def exposed_is_end(self):
+        return 2 in [self.world.get_world()[x] for x in self.dim]
+
+    def exposed_get_score_tab(self):
+        score_tab = {}
+        for player in self.players:
+            score_tab[player.get_name()] = player.get_score()
+        return score_tab
 
     def exposed_get_players(self):
         return self.players
@@ -101,7 +122,7 @@ class GameServer(rpyc.Service):
                     self.world.set_pos(player.case_x, player.case_y, 0)
                     player.case_x += 1
                     #player.x = player.case_x * pict_size # useless pour le server de savoir où il est en pixel ...
-                    #is_allowed = True
+                    is_allowed = True
                 if direction == 'left' and player.case_x > 0 and self.world.get_world()[player.case_x - 1][player.case_y] != 1:
                     print("ok")
                     if self.world.get_world()[player.case_x - 1][player.case_y] == 2:
@@ -111,7 +132,7 @@ class GameServer(rpyc.Service):
                     self.world.set_pos(player.case_x, player.case_y, 0)
                     player.case_x -= 1
                     #player.x = player.case_x * pict_size
-                    #is_allowed = True
+                    is_allowed = True
                 if direction == 'top' and player.case_y > 0 and self.world.get_world()[player.case_x][player.case_y - 1] != 1:
                     print("ok")
                     if self.world.get_world()[player.case_x][player.case_y - 1] == 2:
@@ -121,7 +142,7 @@ class GameServer(rpyc.Service):
                     self.world.set_pos(player.case_x, player.case_y, 0)
                     player.case_y -= 1
                     #player.y = player.case_y * pict_size
-                    #is_allowed = True
+                    is_allowed = True
                 if direction == 'bot' and player.case_y < (dim_y - 1) and self.world.get_world()[player.case_x][player.case_y + 1] != 1:
                     print("ok")
                     if self.world.get_world()[player.case_x][player.case_y + 1] == 2:
@@ -131,7 +152,7 @@ class GameServer(rpyc.Service):
                     self.world.set_pos(player.case_x, player.case_y, 0)
                     player.case_y += 1
                     #player.y = player.case_y * pict_size
-                    #is_allowed = True
+                    is_allowed = True
                 return is_allowed
 
     '''
@@ -142,6 +163,18 @@ class GameServer(rpyc.Service):
             rand_x, rand_y = randint(0, dim_x - 1), randint(0, dim_y - 1)
         return rand_x, rand_y
         '''
+
+    def exposed_get_score(self):
+        print("test")
+        for i, player in enumerate(self.players):
+            if player.get_conn() == self._conn:
+                print("score" + str(player.get_score()))
+                return player.get_score()
+
+    def exposed_get_pos(self):
+        x, y = self.world.get_available_spawnable_pos()
+        self.world.set_pos(x, y, 1)  # TODO : A voir si on en a besoin
+        return x, y
 
     def exposed_start_game(self, name):
         x, y = self.world.get_available_spawnable_pos()

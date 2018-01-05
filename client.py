@@ -66,7 +66,13 @@ if __name__ == '__main__':
     done = False
     game_started = False
     while not done:
-        time.sleep(3) # Permet de tester la concurrence et ca marche
+        best_player, best_score = conn.root.get_best_player()
+        print("You collected " + str(player.get_score()) + " sweets.")
+        if best_player == player.get_name():
+            print("Best player : It's you with " + str(player.get_score()) + " sweets!")
+        else:
+            print("Best player : " + best_player + " with " + str(best_score) + " sweets!")
+        #time.sleep(3) # Permet de tester la concurrence et ca marche
         pygame.time.Clock().tick(10)
         world.set_world(conn.root.get_world())
         for event in pygame.event.get():
@@ -82,18 +88,22 @@ if __name__ == '__main__':
                     if event.key == K_RIGHT:
                         choice = 'right'
                         if conn.root.move(choice):
+                            player.set_score(conn.root.get_score())
                             player.move(choice)
                     elif event.key == K_LEFT:
                         choice = 'left'
                         if conn.root.move(choice):
+                            player.set_score(conn.root.get_score())
                             player.move(choice)
                     elif event.key == K_UP:
                         choice = 'top'
                         if conn.root.move(choice):
+                            player.set_score(conn.root.get_score())
                             player.move(choice)
                     elif event.key == K_DOWN:
                         choice = 'bot'
                         if conn.root.move(choice):
+                            player.set_score(conn.root.get_score())
                             player.move(choice)
 
         # we randomly move the player at each tick
