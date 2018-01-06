@@ -48,42 +48,46 @@ if __name__ == '__main__':
         parser.print_usage()
 
     conn = rpyc.connect('127.0.0.1', 12345, service=GameClient)
-    world_grid = conn.root.get_world()
+    pos_x, pos_y, player_name, world_grid = conn.root.start_game(player_name)
     dim = len(world_grid)
-    win_dim_x = pict_size * dim
-    win_dim_y = pict_size * dim + 2*pict_size
+    win_dim_x = 2 * pict_size * dim
+    win_dim_y = pict_size * dim
     pygame.init()
     window = pygame.display.set_mode((win_dim_x, win_dim_y))
+    fond = pygame.Surface((2*pict_size * dim, pict_size * dim))
+    fond.fill((255,255,255))
     pygame.display.set_caption('THE SR GAME')
-    score = 0
-    myfont = pygame.font.SysFont("Monospace", 24)
-    score_display = myfont.render("You collected " + str(score) + " sweets", 1, (255, 0, 0))
+    score = ""
+    myfont = pygame.font.SysFont("Monospace", 14)
+    #score_display = myfont.render(score, 1, (255, 0, 0))
 
 
+    #pos_x, pos_y, player_name, world_grid = conn.root.init_world(player_name)
     world = World(dimensions=(dim, dim))
     world.set_world(world_grid)
 
+    player = Player(pos_x, pos_y, player_name, conn, world)
+    player.set_pos(pos_x, pos_y)
+
+    score_tab = ""
     done = False
     player_init = False
     game_started = False
     while not done:
         if (conn.root.is_end() or not player_init ):
             print("Welcome to a new game")
-            print("Space to start the game")
+            window.blit(pygame.Surface((2*pict_size * dim, pict_size * dim)), (325, 0))
+            window.blit(myfont.render("Space to start the game", 1, (255, 0, 0)), (325, 10))
             game_started = False
-            pos_x, pos_y, player_name, world_grid = conn.root.init_world(player_name)
-            player = Player(pos_x, pos_y, player_name, conn, world)
-            player.set_pos(pos_x, pos_y)
             player_init = True
+
         if (game_started):
-            best_player, best_score = conn.root.get_best_player()
-            print("You collected " + str(player.get_score()) + " sweets.")
-            if best_player == player.get_name():
-                score = player.get_score()
-                score_display = myfont.render("You collected " + str(score) + " sweets", 1, (255, 0, 0))
-                print("Best player : It's you with " + str(player.get_score()) + " sweets!")
-            else:
-                print("Best player : " + best_player + " with " + str(best_score) + " sweets!")
+            score_tab = conn.root.get_score_tab()
+            window.blit(fond, (325, 0))
+            y = 10
+            for ligne in score_tab.splitlines():
+                window.blit(myfont.render(ligne, 1, (255, 0, 0)), (325, y))
+                y+=pict_size
 
         #time.sleep(3) # Permet de tester la concurrence et ca marche
         pygame.time.Clock().tick(10)
@@ -131,7 +135,8 @@ if __name__ == '__main__':
 
 
         world.display(window)
-        window.blit(score_display, (10, 325))
+
+        #window.blit(score_display, (325, 10))
         #player.display(window)
         pygame.display.flip()
 

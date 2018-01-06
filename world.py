@@ -9,10 +9,10 @@ class World:
         A class allowing a representation of a 2D world
     """
 
-    def __init__(self, probability_sweet=0.1, dimensions=(10, 10)):
+    def __init__(self, probability_sweet=0.05, dimensions=(10, 10)):
         self.dim_x, self.dim_y = dimensions
-        self.world = [[choices([0, 2], [1 - probability_sweet, probability_sweet])[0] for _ in range(self.dim_x)]
-                      for _ in range(self.dim_y)]
+        self.world = [[]]
+        self.generate_new_world(probability_sweet)
 
     def display(self, window_ref):
         """
@@ -34,6 +34,9 @@ class World:
                 if box == 2:  # 2 = sweet
                     window_ref.blit(sweet, (x, y))
 
+    def generate_new_world(self, probability_sweet=0.05):
+        self.world = [[choices([0, 2], [1 - probability_sweet, probability_sweet])[0] for _ in range(self.dim_x)]
+                      for _ in range(self.dim_y)]
 
     def set_world(self, w):
         self.world = w

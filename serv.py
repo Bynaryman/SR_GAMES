@@ -1,3 +1,4 @@
+import operator
 from random import choices, randint
 import rpyc
 from rpyc.utils.server import ThreadedServer  # or ForkingServer
@@ -79,10 +80,12 @@ class GameServer(rpyc.Service):
             if score == max(score_tab.values()):
                 return player, score
 
-    def exposed_init_world(self, name):
-        self.world = World(dimensions=(self.dim, self.dim))
-        for i, player in enumerate(self.players):
-            del self.players[i]
+    #def exposed_init_world(self):
+     #   self.world = World(dimensions=(self.dim, self.dim))
+        #for i, player in enumerate(self.players):
+        #    del self.players[i]
+
+    def exposed_start_game(self, name):
         x, y = self.world.get_available_spawnable_pos()
         # self.world.set_pos(x, y, 1)  # TODO : A voir si on en a besoin
         if name in self.names_pick:
@@ -98,13 +101,22 @@ class GameServer(rpyc.Service):
         for i, row in enumerate(self.world.get_world()):
             for j, box in enumerate(row):
                 if box == 2: return False
+        self.world.generate_new_world()
+        for player in self.players:
+            player.set_score(0)
         return True
 
     def exposed_get_score_tab(self):
+        score_text = ""
         score_tab = {}
         for player in self.players:
             score_tab[player.get_name()] = player.get_score()
-        return score_tab
+        score_tab = sorted(score_tab.items(), key=operator.itemgetter(1))
+        score_tab.reverse()
+        for case in score_tab:
+            player, score = case
+            score_text += "| " + player + " : " + str(score) + " \n"
+        return score_text
 
     def exposed_get_players(self):
         return self.players
@@ -143,44 +155,36 @@ class GameServer(rpyc.Service):
                 # TODO : gerer bombons et score ici
                 # TODO 2 : quand quelqun bouge il faut reset le world du server
                 if direction == 'right' and player.case_x < (dim_x - 1) and self.world.get_world()[player.case_x + 1][player.case_y] != 1:
-                    print("ok")
                     if self.world.get_world()[player.case_x + 1][player.case_y] == 2:
                         print(player.get_name() + " +1 " + str(player.get_score()))
                         player.set_score(player.get_score() + 1)
                     self.world.set_pos(player.case_x + 1, player.case_y, 1)
                     self.world.set_pos(player.case_x, player.case_y, 0)
                     player.case_x += 1
-                    #player.x = player.case_x * pict_size # useless pour le server de savoir où il est en pixel ...
                     is_allowed = True
                 if direction == 'left' and player.case_x > 0 and self.world.get_world()[player.case_x - 1][player.case_y] != 1:
-                    print("ok")
                     if self.world.get_world()[player.case_x - 1][player.case_y] == 2:
                         print(player.get_name() + "+1")
                         player.set_score(player.get_score() + 1)
                     self.world.set_pos(player.case_x - 1, player.case_y, 1)
                     self.world.set_pos(player.case_x, player.case_y, 0)
                     player.case_x -= 1
-                    #player.x = player.case_x * pict_size
                     is_allowed = True
                 if direction == 'top' and player.case_y > 0 and self.world.get_world()[player.case_x][player.case_y - 1] != 1:
-                    print("ok")
                     if self.world.get_world()[player.case_x][player.case_y - 1] == 2:
                         print(player.get_name() + "+1")
                         player.set_score(player.get_score() + 1)
                     self.world.set_pos(player.case_x, player.case_y - 1, 1)
                     self.world.set_pos(player.case_x, player.case_y, 0)
                     player.case_y -= 1
-                    #player.y = player.case_y * pict_size
                     is_allowed = True
                 if direction == 'bot' and player.case_y < (dim_y - 1) and self.world.get_world()[player.case_x][player.case_y + 1] != 1:
-                    print("ok")
                     if self.world.get_world()[player.case_x][player.case_y + 1] == 2:
                         print(player.get_name() + "+1")
                         player.set_score(player.get_score() + 1)
                     self.world.set_pos(player.case_x, player.case_y + 1, 1)
                     self.world.set_pos(player.case_x, player.case_y, 0)
                     player.case_y += 1
-                    #player.y = player.case_y * pict_size
                     is_allowed = True
                 return is_allowed
 
