@@ -79,13 +79,26 @@ class GameServer(rpyc.Service):
             if score == max(score_tab.values()):
                 return player, score
 
-    def exposed_init_world(self):
+    def exposed_init_world(self, name):
         self.world = World(dimensions=(self.dim, self.dim))
+        for i, player in enumerate(self.players):
+            del self.players[i]
+        x, y = self.world.get_available_spawnable_pos()
+        # self.world.set_pos(x, y, 1)  # TODO : A voir si on en a besoin
+        if name in self.names_pick:
+            name += ' :)'
+        player = Player(x, y, name, self._conn, self.world)
+        self.players.append(player)
+        print('new player joined the game: ' + name)
         for player in self.players:
-            player.set_score(0)
+            player.get_conn().root.notify_new_player(name)
+        return x, y, name, self.world.get_world()
 
     def exposed_is_end(self):
-        return 2 in [self.world.get_world()[x] for x in self.dim]
+        for i, row in enumerate(self.world.get_world()):
+            for j, box in enumerate(row):
+                if box == 2: return False
+        return True
 
     def exposed_get_score_tab(self):
         score_tab = {}
@@ -99,10 +112,26 @@ class GameServer(rpyc.Service):
     def exposed_get_world(self):
         return self.world.get_world()
 
+    def exposed_get_world_dim(self):
+        return self.dim
+
     def exposed_start(self):
         for i, player in enumerate(self.players):
             if player.get_conn() == self._conn:
                 self.world.set_pos(player.case_x, player.case_y, 1)
+
+    def exposed_get_score(self):
+        print("test")
+        for i, player in enumerate(self.players):
+            if player.get_conn() == self._conn:
+                print("score" + str(player.get_score()))
+                return player.get_score()
+
+    def exposed_get_pos(self):
+        x, y = self.world.get_available_spawnable_pos()
+        # self.world.set_pos(x, y, 1)  # TODO : A voir si on en a besoin
+        return x, y
+
 
     def exposed_move(self, direction):
         is_allowed = False
@@ -116,7 +145,7 @@ class GameServer(rpyc.Service):
                 if direction == 'right' and player.case_x < (dim_x - 1) and self.world.get_world()[player.case_x + 1][player.case_y] != 1:
                     print("ok")
                     if self.world.get_world()[player.case_x + 1][player.case_y] == 2:
-                        print(player.get_name() + "+1")
+                        print(player.get_name() + " +1 " + str(player.get_score()))
                         player.set_score(player.get_score() + 1)
                     self.world.set_pos(player.case_x + 1, player.case_y, 1)
                     self.world.set_pos(player.case_x, player.case_y, 0)
@@ -163,30 +192,6 @@ class GameServer(rpyc.Service):
             rand_x, rand_y = randint(0, dim_x - 1), randint(0, dim_y - 1)
         return rand_x, rand_y
         '''
-
-    def exposed_get_score(self):
-        print("test")
-        for i, player in enumerate(self.players):
-            if player.get_conn() == self._conn:
-                print("score" + str(player.get_score()))
-                return player.get_score()
-
-    def exposed_get_pos(self):
-        x, y = self.world.get_available_spawnable_pos()
-        self.world.set_pos(x, y, 1)  # TODO : A voir si on en a besoin
-        return x, y
-
-    def exposed_start_game(self, name):
-        x, y = self.world.get_available_spawnable_pos()
-        if name in self.names_pick:
-            name += ' :)'
-        player = Player(x, y, name, self._conn, self.world)
-        self.players.append(player)
-        print('new player joined the game: ' + name)
-        for player in self.players:
-            player.get_conn().root.notify_new_player(name)
-        return x, y, name, self.world.get_world()
-
 
 
 if __name__ == '__main__':

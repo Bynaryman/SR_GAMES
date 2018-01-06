@@ -9,7 +9,7 @@ class World:
         A class allowing a representation of a 2D world
     """
 
-    def __init__(self, probability_sweet=0.3, dimensions=(10, 10)):
+    def __init__(self, probability_sweet=0.1, dimensions=(10, 10)):
         self.dim_x, self.dim_y = dimensions
         self.world = [[choices([0, 2], [1 - probability_sweet, probability_sweet])[0] for _ in range(self.dim_x)]
                       for _ in range(self.dim_y)]

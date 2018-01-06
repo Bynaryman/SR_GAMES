@@ -48,33 +48,45 @@ if __name__ == '__main__':
         parser.print_usage()
 
     conn = rpyc.connect('127.0.0.1', 12345, service=GameClient)
-    x, y, player_name, world_grid = conn.root.start_game(player_name)
-
+    world_grid = conn.root.get_world()
     dim = len(world_grid)
-    win_dim_x = win_dim_y = pict_size * dim
-
+    win_dim_x = pict_size * dim
+    win_dim_y = pict_size * dim + 2*pict_size
     pygame.init()
     window = pygame.display.set_mode((win_dim_x, win_dim_y))
     pygame.display.set_caption('THE SR GAME')
+    score = 0
+    myfont = pygame.font.SysFont("Monospace", 24)
+    score_display = myfont.render("You collected " + str(score) + " sweets", 1, (255, 0, 0))
+
 
     world = World(dimensions=(dim, dim))
     world.set_world(world_grid)
-    pos_x, pos_y = x, y
-    player = Player(pos_x, pos_y, player_name, conn, world)
 
-    print("Space to start the game")
     done = False
+    player_init = False
     game_started = False
     while not done:
-        best_player, best_score = conn.root.get_best_player()
-        print("You collected " + str(player.get_score()) + " sweets.")
-        if best_player == player.get_name():
-            print("Best player : It's you with " + str(player.get_score()) + " sweets!")
-        else:
-            print("Best player : " + best_player + " with " + str(best_score) + " sweets!")
+        if (conn.root.is_end() or not player_init ):
+            print("Welcome to a new game")
+            print("Space to start the game")
+            game_started = False
+            pos_x, pos_y, player_name, world_grid = conn.root.init_world(player_name)
+            player = Player(pos_x, pos_y, player_name, conn, world)
+            player.set_pos(pos_x, pos_y)
+            player_init = True
+        if (game_started):
+            best_player, best_score = conn.root.get_best_player()
+            print("You collected " + str(player.get_score()) + " sweets.")
+            if best_player == player.get_name():
+                score = player.get_score()
+                score_display = myfont.render("You collected " + str(score) + " sweets", 1, (255, 0, 0))
+                print("Best player : It's you with " + str(player.get_score()) + " sweets!")
+            else:
+                print("Best player : " + best_player + " with " + str(best_score) + " sweets!")
+
         #time.sleep(3) # Permet de tester la concurrence et ca marche
         pygame.time.Clock().tick(10)
-        world.set_world(conn.root.get_world())
         for event in pygame.event.get():
             if event.type == QUIT:
                 done = True
@@ -88,28 +100,38 @@ if __name__ == '__main__':
                     if event.key == K_RIGHT:
                         choice = 'right'
                         if conn.root.move(choice):
-                            player.set_score(conn.root.get_score())
-                            player.move(choice)
+                            print("You move to right")
+                        else:
+                            print("You can't move to right")
                     elif event.key == K_LEFT:
                         choice = 'left'
                         if conn.root.move(choice):
-                            player.set_score(conn.root.get_score())
-                            player.move(choice)
+                            print("You move to left")
+                        else:
+                            print("You can't move to left")
                     elif event.key == K_UP:
                         choice = 'top'
                         if conn.root.move(choice):
-                            player.set_score(conn.root.get_score())
-                            player.move(choice)
+                            print("You move to top")
+                        else:
+                            print("You can't move to top")
                     elif event.key == K_DOWN:
                         choice = 'bot'
                         if conn.root.move(choice):
-                            player.set_score(conn.root.get_score())
-                            player.move(choice)
+                            print("You move to bot")
+                        else:
+                            print("You can't move to bot")
+
+                    player.set_score(conn.root.get_score())
+
+        world.set_world(conn.root.get_world())
 
         # we randomly move the player at each tick
         # choice = choices(['bot', 'top', 'right', 'left'], [1, 1, 1, 1])[0]
 
+
         world.display(window)
+        window.blit(score_display, (10, 325))
         #player.display(window)
         pygame.display.flip()
 
