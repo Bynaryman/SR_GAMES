@@ -40,48 +40,6 @@ class Player:
         return "Player : " + self.name + ", Coords : (" + str(self.case_x) + "," + str(self.case_y) + "), Score : " \
                + str(self.score)
 
-
-    def move(self, direction):
-        print("ok")
-        '''
-        """
-
-        :param direction:
-        :return:
-        """
-        dim_x, dim_y = self.world.get_dimensions()
-
-        if direction == 'right':
-            if self.case_x < (dim_x - 1):
-                # exemple d'un cas à traiter s'il y a un bombom
-                # if self.world.get_world()[self.case_y][self.case_x + 1] != 2:
-                self.case_x += 1
-                self.x = self.case_x * pict_size
-
-        if direction == 'left':
-            if self.case_x > 0:
-                # if self.world.get_world()[self.case_y][self.case_x - 1] != 2:
-                self.case_x -= 1
-                self.x = self.case_x * pict_size
-
-        if direction == 'top':
-            if self.case_y > 0:
-                # if self.world.get_world()[self.case_y - 1][self.case_x] != 2:
-                self.case_y -= 1
-                self.y = self.case_y * pict_size
-
-        if direction == 'bot':
-            if self.case_y < (dim_y - 1):
-                # if self.world.get_world()[self.case_y + 1][self.case_x] != 2:
-                self.case_y += 1
-                self.y = self.case_y * pict_size
-    '''
-
-    def display(self, window_ref):
-        p = pygame.image.load(pict_player).convert_alpha()
-        window_ref.blit(p, (self.x, self.y))
-
-
 if __name__ == '__main__':
 
     """

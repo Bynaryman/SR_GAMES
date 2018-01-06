@@ -71,27 +71,36 @@ if __name__ == '__main__':
 
     best_player = ""
     score_tab = ""
-    done = False
-    player_init = False
-    game_started = False
+    done = False # Done is true when we close game
+    first_game = True
+    game_started = False # game_started is true when
     while not done:
-        if (conn.root.is_end() or not player_init ):
-            print("Welcome to a new game")
-            window.blit(pygame.Surface((2*pict_size * dim, pict_size * dim)), (325, 0))
-            if(player_init):
-                best_player = conn.root.get_best_player()
-                window.blit(myfont.render(best_player + " win last game!", 1, (255, 0, 0)), (325, 10))
-            window.blit(myfont.render("Space to start the game", 1, (255, 0, 0)), (325, 2 * pict_size))
-            game_started = False
-            player_init = True
+        #if (not game_started):
+            #window.blit(myfont.render("Space to start the game", 1, (255, 0, 0)), (325, 2 * pict_size))
+        #else:
+        score_tab = conn.root.get_score_tab()
+        window.blit(fond, (325, 0))
+        y = 10
+        for ligne in score_tab.splitlines():
+            window.blit(myfont.render(ligne, 1, (255, 0, 0)), (325, y))
+            y += pict_size
 
-        if (game_started):
-            score_tab = conn.root.get_score_tab()
-            window.blit(fond, (325, 0))
-            y = 10
-            for ligne in score_tab.splitlines():
-                window.blit(myfont.render(ligne, 1, (255, 0, 0)), (325, y))
-                y+=pict_size
+            #conn.root.generate_new_world()
+            #conn.root.reset_score()
+            #game_started = False
+            #print("Welcome to a new game")
+            #window.blit(pygame.Surface((2*pict_size * dim, pict_size * dim)), (325, 0))
+            #if(player_init):
+            #    best_player = conn.root.get_best_player()
+            #    window.blit(myfont.render(best_player + " win last game!", 1, (255, 0, 0)), (325, 10))
+            #window.blit(myfont.render("Space to start the game", 1, (255, 0, 0)), (325, 2 * pict_size))
+            #conn.root.reset_score()
+            #if(not game_started):
+                #conn.root.generate_new_world()
+                #conn.root.reset_score()
+            #game_started = False
+            #first_game = False
+
 
         #time.sleep(3) # Permet de tester la concurrence et ca marche
         pygame.time.Clock().tick(10)
@@ -107,30 +116,38 @@ if __name__ == '__main__':
                 if game_started:
                     if event.key == K_RIGHT:
                         choice = 'right'
-                        if conn.root.move(choice):
+                        end, movable = conn.root.move(choice)
+                        if movable:
                             print("You move to right")
                         else:
                             print("You can't move to right")
                     elif event.key == K_LEFT:
                         choice = 'left'
-                        if conn.root.move(choice):
+                        end, movable = conn.root.move(choice)
+                        if movable:
                             print("You move to left")
                         else:
                             print("You can't move to left")
                     elif event.key == K_UP:
                         choice = 'top'
-                        if conn.root.move(choice):
+                        end, movable = conn.root.move(choice)
+                        if movable:
                             print("You move to top")
                         else:
                             print("You can't move to top")
                     elif event.key == K_DOWN:
                         choice = 'bot'
-                        if conn.root.move(choice):
+                        end, movable = conn.root.move(choice)
+                        if movable:
                             print("You move to bot")
                         else:
                             print("You can't move to bot")
+                    #player.set_score(conn.root.get_score())
+                #if end:
+                #    best_player = conn.root.get_best_player()
+                #    window.blit(fond, (325, 0))
+                #    window.blit(myfont.render(best_player + " win last game!", 1, (255, 0, 0)), (325, 10))
 
-                    player.set_score(conn.root.get_score())
 
         world.set_world(conn.root.get_world())
 
