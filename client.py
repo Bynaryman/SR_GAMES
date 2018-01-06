@@ -69,6 +69,7 @@ if __name__ == '__main__':
     player = Player(pos_x, pos_y, player_name, conn, world)
     player.set_pos(pos_x, pos_y)
 
+    best_player = ""
     score_tab = ""
     done = False
     player_init = False
@@ -77,7 +78,10 @@ if __name__ == '__main__':
         if (conn.root.is_end() or not player_init ):
             print("Welcome to a new game")
             window.blit(pygame.Surface((2*pict_size * dim, pict_size * dim)), (325, 0))
-            window.blit(myfont.render("Space to start the game", 1, (255, 0, 0)), (325, 10))
+            if(player_init):
+                best_player = conn.root.get_best_player()
+                window.blit(myfont.render(best_player + " win last game!", 1, (255, 0, 0)), (325, 10))
+            window.blit(myfont.render("Space to start the game", 1, (255, 0, 0)), (325, 2 * pict_size))
             game_started = False
             player_init = True
 

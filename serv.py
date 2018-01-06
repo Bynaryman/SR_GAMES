@@ -78,7 +78,7 @@ class GameServer(rpyc.Service):
             score_tab[player.get_name()] = player.get_score()
         for (player, score) in score_tab.items():
             if score == max(score_tab.values()):
-                return player, score
+                return player
 
     #def exposed_init_world(self):
      #   self.world = World(dimensions=(self.dim, self.dim))
