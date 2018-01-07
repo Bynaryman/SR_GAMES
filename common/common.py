@@ -7,5 +7,3 @@ pict_size = 32
 pict_sweet = os.path.abspath(__file__ + '/../../pictures/sweet.png')
 pict_grass = os.path.abspath(__file__ + '/../../pictures/grass.png')
 pict_player = os.path.abspath(__file__ + '/../../pictures/player.png')
-
-print('here', pict_grass)
