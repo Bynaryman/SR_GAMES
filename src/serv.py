@@ -1,11 +1,9 @@
 import operator
-from random import choices, randint
 import rpyc
 from rpyc.utils.server import ThreadedServer  # or ForkingServer
-import namesgenerator
-from player import Player
-from world import World
-from common import *
+from src.player import Player
+from src.world import World
+
 
 class GameServer(rpyc.Service):
     """
@@ -25,23 +23,6 @@ class GameServer(rpyc.Service):
                 [ ... ]
 
     """
-
-    """
-    _world = [[choices([0, 2], [0.7, 0.3])[0] for _ in range(10)] for _ in range(10)]
-    _players = []
-    _names_pick = []
-    """
-
-    """
-    def __init__(self, conn):
-        super().__init__(conn)
-        dim = 10
-        world = World(dimensions=(dim, dim))
-        self.names_pick = []
-        self.players = []
-        self.world = world
-    """
-
 
     dim = 10
     world = World(dimensions=(dim, dim))
@@ -189,8 +170,6 @@ class GameServer(rpyc.Service):
                 dim_x, dim_y = self.world.get_dimensions()
                 player_name = player.get_name()
                 print(player_name, 'wants to move to the', direction)
-                # TODO : gerer bombons et score ici
-                # TODO 2 : quand quelqun bouge il faut reset le world du server
                 if direction == 'right' and player.case_x < (dim_x - 1) and self.world.get_world()[player.case_x + 1][player.case_y] != 1:
                     if self.world.get_world()[player.case_x + 1][player.case_y] == 2:
                         print(player.get_name() + " +1 " + str(player.get_score()))
@@ -233,15 +212,6 @@ class GameServer(rpyc.Service):
                     self.generate_new_world()
                     self.reset_score()
                 return game_started, is_allowed
-
-    '''
-    def find_correct_place_to_spawn(self):
-        dim_x, dim_y = len(self._world[0]), len(self._world)
-        rand_x, rand_y = randint(0, dim_x - 1), randint(0, dim_y - 1)
-        while self._world[rand_x][rand_y] != 0:
-            rand_x, rand_y = randint(0, dim_x - 1), randint(0, dim_y - 1)
-        return rand_x, rand_y
-        '''
 
 
 if __name__ == '__main__':

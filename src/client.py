@@ -1,14 +1,11 @@
-from random import choices
-
 import namesgenerator
 import rpyc
-from player import Player
-from common import *
+from src.player import Player
 import pygame
 from pygame.locals import *
-from world import World
+from src.world import World
 import argparse
-import time
+from common.common import *
 
 
 class ArgumentParserError(Exception):
@@ -59,10 +56,9 @@ if __name__ == '__main__':
     pygame.display.set_caption('THE SR GAME')
     score = ""
     myfont = pygame.font.SysFont("Monospace", 14)
-    #score_display = myfont.render(score, 1, (255, 0, 0))
+    # score_display = myfont.render(score, 1, (255, 0, 0))
 
-
-    #pos_x, pos_y, player_name, world_grid = conn.root.init_world(player_name)
+    # pos_x, pos_y, player_name, world_grid = conn.root.init_world(player_name)
     world = World(dimensions=(dim, dim))
     world.set_world(world_grid)
 
@@ -71,13 +67,13 @@ if __name__ == '__main__':
 
     best_player = ""
     score_tab = ""
-    done = False # Done is true when we close game
+    done = False  # Done is true when we close game
     first_game = True
-    game_started = False # game_started is true when
+    game_started = False  # game_started is true when
     while not done:
-        #if (not game_started):
-            #window.blit(myfont.render("Space to start the game", 1, (255, 0, 0)), (325, 2 * pict_size))
-        #else:
+        # if (not game_started):
+            # window.blit(myfont.render("Space to start the game", 1, (255, 0, 0)), (325, 2 * pict_size))
+        # else:
         score_tab = conn.root.get_score_tab()
         window.blit(fond, (325, 0))
         y = 10
@@ -151,13 +147,8 @@ if __name__ == '__main__':
 
         world.set_world(conn.root.get_world())
 
-        # we randomly move the player at each tick
-        # choice = choices(['bot', 'top', 'right', 'left'], [1, 1, 1, 1])[0]
-
-
         world.display(window)
 
-        #window.blit(score_display, (325, 10))
-        #player.display(window)
+        # window.blit(score_display, (325, 10))
         pygame.display.flip()
 

@@ -1,7 +1,7 @@
 from random import choices, randint
 import pygame
 from pygame.locals import *
-from common import *
+from common.common import *
 
 
 class World:
@@ -20,6 +20,7 @@ class World:
         :param {pygame.display} window_ref: a window where the world will be displayed
         """
 
+        # print(pict_grass)
         grass = pygame.image.load(pict_grass).convert()
         sweet = pygame.image.load(pict_sweet).convert_alpha()
         player = pygame.image.load(pict_player).convert_alpha()

@@ -1,6 +1,6 @@
-from common import *
 import pygame
-from pygame.locals import *
+from common.common import *
+
 
 class Player:
     """
@@ -40,6 +40,7 @@ class Player:
         return "Player : " + self.name + ", Coords : (" + str(self.case_x) + "," + str(self.case_y) + "), Score : " \
                + str(self.score)
 
+
 if __name__ == '__main__':
 
     """
@@ -50,10 +51,8 @@ if __name__ == '__main__':
         We always redraw all (world + player) @ 10FPS (theoric)
     """
 
-
-    from world import World
+    from src.world import World
     from pygame.locals import *
-    from random import choices
 
     dim = 10
     win_dim_x = win_dim_y = pict_size * dim
@@ -75,9 +74,5 @@ if __name__ == '__main__':
             if event.type == QUIT:
                 done = True
 
-        # we randomly move the player at each tick
-        player.move(choices(['bot', 'top', 'right', 'left'], [1, 1, 1, 1])[0])
-
         world.display(window)
-        player.display(window)
         pygame.display.flip()
