@@ -28,12 +28,10 @@ class GameServer(rpyc.Service):
     world = World(dimensions=(dim, dim))
     names_pick = []
     players = []
-    score_tab = {}
 
 
     def on_connect(self):
         print('someone connected')
-        print(self.score_tab)
 
     '''
      Supprime le joueur de la grille
@@ -48,29 +46,30 @@ class GameServer(rpyc.Service):
                 x, y = player.get_pos()
                 print('player left:', player_name, x, y)
                 self.world.get_world()[x][y] = 0
-                print(self.players)
                 del self.players[i]
-                if player.get_name() in self.score_tab.keys():
-                    del self.score_tab[player.get_name()]
-                print(self.players)
                 for playerToNotify in self.players:
                     playerToNotify.get_conn().root.notify_player_left(player_name)
 
     '''
-    Renvoie le nom du meilleur joueur
+    Renvoie la liste des nom des gagnants et le meilleur score
     '''
-    def exposed_get_best_player(self):
+    def get_best_player(self):
         score_tab = {}
+        winner = []
+        best_score = 0
         for player in self.players:
             score_tab[player.get_name()] = player.get_score()
         for (player, score) in score_tab.items():
             if score == max(score_tab.values()):
-                return player
+                winner.append(player)
+                best_score = score
+        return winner, best_score
 
-    #def exposed_init_world(self):
-     #   self.world = World(dimensions=(self.dim, self.dim))
-        #for i, player in enumerate(self.players):
-        #    del self.players[i]
+    '''
+    Renvoie vrai si la partie est pleine
+    '''
+    def exposed_is_game_full(self):
+        return (len(self.players) > 10)
 
     '''
     Valide le nom du joueur
@@ -80,7 +79,6 @@ class GameServer(rpyc.Service):
     '''
     def exposed_start_game(self, name):
         x, y = self.world.get_available_spawnable_pos()
-        # self.world.set_pos(x, y, 1)  # TODO : A voir si on en a besoin
         if name in self.names_pick:
             name += ' :)'
         player = Player(x, y, name, self._conn, self.world)
@@ -109,8 +107,6 @@ class GameServer(rpyc.Service):
     Met à 0 le score de tous les joueurs
     '''
     def reset_score(self):
-        self.score_tab = {}
-        print("reset" + str(self.score_tab))
         for player in self.players:
             player.set_score(0)
 
@@ -153,7 +149,6 @@ class GameServer(rpyc.Service):
         for i, player in enumerate(self.players):
             if player.get_conn() == self._conn:
                 self.world.set_pos(player.case_x, player.case_y, 1)
-                self.score_tab[player.get_name()] = player.get_score()
 
     '''
     Si il ne va pas sortir de la grille et qu'il n'y a pas de joueur ou il va :
@@ -163,55 +158,47 @@ class GameServer(rpyc.Service):
     Renvoie si le joueur peut bouger
     '''
     def exposed_move(self, direction):
-        game_started = True
         is_allowed = False
         for i, player in enumerate(self.players):
             if player.get_conn() == self._conn:
                 dim_x, dim_y = self.world.get_dimensions()
-                player_name = player.get_name()
-                print(player_name, 'wants to move to the', direction)
                 if direction == 'right' and player.case_x < (dim_x - 1) and self.world.get_world()[player.case_x + 1][player.case_y] != 1:
                     if self.world.get_world()[player.case_x + 1][player.case_y] == 2:
-                        print(player.get_name() + " +1 " + str(player.get_score()))
                         player.set_score(player.get_score() + 1)
-                        self.score_tab[player.get_name()] = player.get_score()
                     self.world.set_pos(player.case_x + 1, player.case_y, 1)
                     self.world.set_pos(player.case_x, player.case_y, 0)
                     player.case_x += 1
                     is_allowed = True
                 if direction == 'left' and player.case_x > 0 and self.world.get_world()[player.case_x - 1][player.case_y] != 1:
                     if self.world.get_world()[player.case_x - 1][player.case_y] == 2:
-                        print(player.get_name() + "+1")
                         player.set_score(player.get_score() + 1)
-                        self.score_tab[player.get_name()] = player.get_score()
                     self.world.set_pos(player.case_x - 1, player.case_y, 1)
                     self.world.set_pos(player.case_x, player.case_y, 0)
                     player.case_x -= 1
                     is_allowed = True
                 if direction == 'top' and player.case_y > 0 and self.world.get_world()[player.case_x][player.case_y - 1] != 1:
                     if self.world.get_world()[player.case_x][player.case_y - 1] == 2:
-                        print(player.get_name() + "+1")
                         player.set_score(player.get_score() + 1)
-                        self.score_tab[player.get_name()] = player.get_score()
                     self.world.set_pos(player.case_x, player.case_y - 1, 1)
                     self.world.set_pos(player.case_x, player.case_y, 0)
                     player.case_y -= 1
                     is_allowed = True
                 if direction == 'bot' and player.case_y < (dim_y - 1) and self.world.get_world()[player.case_x][player.case_y + 1] != 1:
                     if self.world.get_world()[player.case_x][player.case_y + 1] == 2:
-                        print(player.get_name() + "+1")
                         player.set_score(player.get_score() + 1)
-                        self.score_tab[player.get_name()] = player.get_score()
                     self.world.set_pos(player.case_x, player.case_y + 1, 1)
                     self.world.set_pos(player.case_x, player.case_y, 0)
                     player.case_y += 1
                     is_allowed = True
-                print(self.score_tab)
                 if self.is_end():
-                    game_started = True
+                    print("New Game")
+                    best_player, score = self.get_best_player()
+                    print(str(best_player) + str(score))
+                    for player in self.players:
+                        player.get_conn().root.notify_end_game(best_player, score)
                     self.generate_new_world()
                     self.reset_score()
-                return game_started, is_allowed
+                return is_allowed
 
 
 if __name__ == '__main__':

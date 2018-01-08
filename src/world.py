@@ -13,14 +13,15 @@ class World:
         self.dim_x, self.dim_y = dimensions
         self.world = [[]]
         self.generate_new_world(probability_sweet)
-
+    '''
+    Permet l'affichage du monde
+    '''
     def display(self, window_ref):
         """
         blit the different tiles of world into a window
         :param {pygame.display} window_ref: a window where the world will be displayed
         """
 
-        # print(pict_grass)
         grass = pygame.image.load(pict_grass).convert()
         sweet = pygame.image.load(pict_sweet).convert_alpha()
         player = pygame.image.load(pict_player).convert_alpha()
@@ -35,19 +36,34 @@ class World:
                 if box == 2:  # 2 = sweet
                     window_ref.blit(sweet, (x, y))
 
+    '''
+    Génère une nouvelle grille
+    '''
     def generate_new_world(self, probability_sweet=0.05):
         self.world = [[choices([0, 2], [1 - probability_sweet, probability_sweet])[0] for _ in range(self.dim_x)]
                       for _ in range(self.dim_y)]
 
+    '''
+    Remplacement de la grille par w
+    '''
     def set_world(self, w):
         self.world = w
 
+    '''
+    Renvoie la  grille
+    '''
     def get_world(self):
         return self.world
 
+    '''
+    Renvoie les dimmensions de la grille
+    '''
     def get_dimensions(self):
         return self.dim_x, self.dim_y
 
+    '''
+    Retourne une position libre pour placer un joueur
+    '''
     def get_available_spawnable_pos(self):
         dim_x, dim_y = len(self.world[0]), len(self.world)
         rand_x, rand_y = randint(0, dim_x - 1), randint(0, dim_y - 1)
@@ -55,6 +71,9 @@ class World:
             rand_y, rand_y = randint(0, dim_x - 1), randint(0, dim_y - 1)
         return rand_x, rand_y
 
+    '''
+    Permet de modifier une case quand un joueur se déplace
+    '''
     def set_pos(self, x, y, nb):
         self.world[x][y] = nb
 
