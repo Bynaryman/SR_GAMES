@@ -10,10 +10,28 @@ from random import choices
 pygame.init()
 window = pygame.display.set_mode((2 * 32 * 10, 32*10))
 
+class GameClient(rpyc.Service):
+
+    def on_connect(self):
+        print('connecting...')
+
+    def exposed_notify_new_player(self, player_name):
+        print('new player joined the game', player_name)
+
+    def exposed_notify_player_left(self, player_name):
+        print('a player left the game', player_name)
+
+    def exposed_notify_end_game(self, list_winner, score):
+        player_name = ""
+        for winner in list_winner:
+            player_name +=  winner + ", "
+        print(player_name + " won last game with " + str(score) + " sweets!")
+        print("Space bar or move to join the new game")
+
 class TestGameClient(unittest.TestCase):
 
     def test_monkey(self):
-        conn = rpyc.connect('127.0.0.1', 12344)
+        conn = rpyc.connect('127.0.0.1', 12345,service=GameClient)
         pos_x, pos_y, player_name, world_grid = conn.root.start_game("monkey")
         dim = len(world_grid)
         win_dim_x = 2 * pict_size * dim
@@ -47,10 +65,4 @@ class TestGameClient(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    not_started = True
-    while(not_started):
-        for event in pygame.event.get() :
-            if event.type == KEYDOWN:
-                if event.key == K_SPACE:
-                    unittest.main()
-                    not_started = False
+    unittest.main()

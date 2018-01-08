@@ -1,6 +1,5 @@
 import namesgenerator
 import rpyc
-from src.player import Player
 import pygame
 from pygame.locals import *
 from src.world import World

@@ -150,7 +150,7 @@ class GameServer(rpyc.Service):
     Ajoute le joueur au tableau des scores
     '''
     def exposed_start(self):
-        for i, player in enumerate(self.players):
+        for player in self.players:
             if player.get_conn() == self._conn:
                 self.world.set_pos(player.case_x, player.case_y, 1)
 

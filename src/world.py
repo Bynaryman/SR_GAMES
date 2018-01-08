@@ -39,7 +39,7 @@ class World:
     '''
     Génère une nouvelle grille
     '''
-    def generate_new_world(self, probability_sweet=0.05):
+    def generate_new_world(self, probability_sweet=0.3):
         self.world = [[choices([0, 2], [1 - probability_sweet, probability_sweet])[0] for _ in range(self.dim_x)]
                       for _ in range(self.dim_y)]
 
