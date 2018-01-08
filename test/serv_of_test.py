@@ -49,8 +49,6 @@ class GameServer(rpyc.Service):
                 self.world.get_world()[x][y] = 0
                 del self.players[i]
                 self.names_pick.remove(player_name)
-                for playerToNotify in self.players:
-                    playerToNotify.get_conn().root.notify_player_left(player_name)
 
     '''
     Renvoie la liste des nom des gagnants et le meilleur score
@@ -85,11 +83,9 @@ class GameServer(rpyc.Service):
         while name in self.names_pick:
             name += ' :)'
         player = Player(x, y, name, self._conn, self.world)
-        self.players.append(player)
         self.names_pick.append(name)
+        self.players.append(player)
         print('new player joined the game: ' + name)
-        for player in self.players:
-            player.get_conn().root.notify_new_player(name)
         return x, y, name, self.world.get_world()
     '''
     Renvoie vrai si la partie est terminé
@@ -198,8 +194,6 @@ class GameServer(rpyc.Service):
                     print("New Game")
                     best_player, score = self.get_best_player()
                     print(str(best_player) + str(score))
-                    for player in self.players:
-                        player.get_conn().root.notify_end_game(best_player, score)
                     self.generate_new_world()
                     self.reset_score()
                 return is_allowed
@@ -211,5 +205,5 @@ if __name__ == '__main__':
         depending on the OS. Forking only works with UNIX based OS
     """
 
-    server = ThreadedServer(GameServer, port=12345)
+    server = ThreadedServer(GameServer, port=12344)
     server.start()

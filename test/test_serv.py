@@ -41,7 +41,3 @@ if __name__ == '__main__':
         In this module we mock client calls to assert server servcice behaviours
     """
     unittest.main()
-
-
-
-
