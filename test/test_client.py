@@ -31,7 +31,7 @@ class GameClient(rpyc.Service):
 class TestGameClient(unittest.TestCase):
 
     def test_monkey(self):
-        conn = rpyc.connect('127.0.0.1', 12345,service=GameClient)
+        conn = rpyc.connect('127.0.0.1', 12344,service=GameClient)
         pos_x, pos_y, player_name, world_grid = conn.root.start_game("monkey")
         dim = len(world_grid)
         win_dim_x = 2 * pict_size * dim
